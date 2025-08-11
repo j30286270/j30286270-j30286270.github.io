@@ -134,10 +134,16 @@
 
         document.getElementById('refresh-btn').addEventListener('click', updateBikeLocation);
 
+        // ======== 加強版「顯示我的位置」按鈕 ========
         document.getElementById('locate-btn').addEventListener('click', function () {
+            console.log("定位按鈕被點擊");
+            alert("開始嘗試取得定位...");
+
             if (navigator.geolocation) {
                 navigator.geolocation.getCurrentPosition(
                     (position) => {
+                        console.log("定位成功", position);
+                        alert("定位成功！");
                         const userLat = position.coords.latitude;
                         const userLng = position.coords.longitude;
 
@@ -163,7 +169,27 @@
                         map.fitBounds(bounds, { padding: [50, 50] });
                     },
                     (error) => {
-                        alert('無法取得您的位置: ' + error.message);
+                        console.error("定位失敗", error);
+                        let errorMsg = "";
+                        switch (error.code) {
+                            case error.PERMISSION_DENIED:
+                                errorMsg = "使用者拒絕定位";
+                                break;
+                            case error.POSITION_UNAVAILABLE:
+                                errorMsg = "無法取得定位資訊";
+                                break;
+                            case error.TIMEOUT:
+                                errorMsg = "定位逾時";
+                                break;
+                            default:
+                                errorMsg = "未知錯誤";
+                        }
+                        alert(`無法取得您的位置：${errorMsg}（錯誤代碼：${error.code}）`);
+                    },
+                    {
+                        enableHighAccuracy: true,
+                        timeout: 10000,
+                        maximumAge: 0
                     }
                 );
             } else {
