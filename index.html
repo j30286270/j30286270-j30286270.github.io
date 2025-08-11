@@ -15,18 +15,20 @@
       overflow: hidden;
     }
     h1 {
-      position: absolute;
-      top: 15px;
-      left: 70px; /* 往右移，避免被按鈕遮住 */
-      margin: 0;
-      font-size: 22px;
-      font-weight: bold;
-      color: white;
-      text-shadow: 0 2px 4px rgba(0, 0, 0, 0.7);
-      z-index: 1000;
-      background: rgba(0, 0, 0, 0.4); /* 半透明背景 */
-      padding: 6px 12px; /* 內距讓背景有空間 */
-      border-radius: 8px; /* 圓角 */
+      h1 {
+    position: absolute;
+    top: 15px;
+    left: 100px; /* 往右移，避免被遮住 */
+    margin: 0;
+    font-size: 22px;
+    font-weight: bold;
+    color: white;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.7);
+    z-index: 1000;
+    background: rgba(0, 0, 0, 0.4); /* 半透明背景讓字更清楚 */
+    padding: 6px 12px;
+    border-radius: 8px;
+  }
     }
     #map {
       height: 100vh;
@@ -211,11 +213,11 @@
         pathVisible = !pathVisible;
         if (pathVisible) {
           polyline.setLatLngs(bikePath);
-          this.textContent = '隱藏軌跡線';
+          this.textContent = '🛣 隱藏軌跡線';
           this.classList.add('active');
         } else {
           polyline.setLatLngs([]);
-          this.textContent = '顯示軌跡線';
+          this.textContent = '🛣 顯示軌跡線';
           this.classList.remove('active');
         }
       });
