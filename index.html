@@ -3,354 +3,133 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>機盜了啦-機車防盜裝置</title>
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <title>機車防竊追蹤系統</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
     <style>
-        :root {
-            --primary: #4361ee;
-            --secondary: #3f37c9;
-            --danger: #f72585;
-            --light: #f8f9fa;
-            --dark: #212529;
-        }
-        
-        * {
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
             margin: 0;
             padding: 0;
-            box-sizing: border-box;
-            font-family: 'Noto Sans TC', sans-serif;
         }
-        
-        body {
-            background-color: #f5f7fa;
-            color: var(--dark);
-        }
-        
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 20px;
-        }
-        
-        header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 30px;
-            padding-bottom: 15px;
-            border-bottom: 1px solid #e0e0e0;
-        }
-        
-        .logo {
-            display: flex;
-            align-items: center;
-        }
-        
-        .logo i {
-            font-size: 2rem;
-            color: var(--primary);
-            margin-right: 10px;
-        }
-        
-        .logo h1 {
-            font-size: 1.5rem;
-            font-weight: 700;
-            color: var(--primary);
-        }
-        
-        .status-card {
-            background: white;
-            border-radius: 12px;
-            padding: 20px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            margin-bottom: 20px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        
-        .status-info {
-            display: flex;
-            align-items: center;
-        }
-        
-        .status-icon {
-            width: 50px;
-            height: 50px;
-            border-radius: 50%;
-            background-color: var(--primary);
-            color: white;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            margin-right: 15px;
-            font-size: 1.5rem;
-        }
-        
-        .status-text h2 {
-            font-size: 1.2rem;
-            margin-bottom: 5px;
-        }
-        
-        .status-text p {
-            color: #666;
-            font-size: 0.9rem;
-        }
-        
-        .btn {
-            padding: 10px 20px;
-            border-radius: 8px;
-            border: none;
-            font-weight: 500;
-            cursor: pointer;
-            transition: all 0.3s;
-            display: inline-flex;
-            align-items: center;
-        }
-        
-        .btn i {
-            margin-right: 8px;
-        }
-        
-        .btn-primary {
-            background-color: var(--primary);
-            color: white;
-        }
-        
-        .btn-primary:hover {
-            background-color: var(--secondary);
-            transform: translateY(-2px);
-        }
-        
-        .btn-danger {
-            background-color: var(--danger);
-            color: white;
-        }
-        
-        .map-container {
-            height: 500px;
-            border-radius: 12px;
-            overflow: hidden;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            position: relative;
-        }
-        
         #map {
-            height: 100%;
+            height: 500px;
             width: 100%;
         }
-        
-        .map-overlay {
-            position: absolute;
-            top: 10px;
-            right: 10px;
-            z-index: 1000;
-            background: white;
-            padding: 10px;
-            border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        .controls {
+            margin: 10px;
         }
-        
-        .history-section {
-            margin-top: 30px;
+        button {
+            margin: 5px;
+            padding: 8px 15px;
+            font-size: 16px;
+            cursor: pointer;
         }
-        
-        .history-title {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 15px;
-        }
-        
-        .history-cards {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-            gap: 20px;
-        }
-        
-        .history-card {
-            background: white;
-            border-radius: 12px;
-            padding: 15px;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-        }
-        
-        .history-card h3 {
-            font-size: 1rem;
-            margin-bottom: 10px;
-            color: var(--primary);
-        }
-        
-        .history-card p {
-            font-size: 0.9rem;
-            color: #666;
-            margin-bottom: 5px;
-        }
-        
-        .alert-badge {
-            background-color: var(--danger);
-            color: white;
-            padding: 3px 8px;
-            border-radius: 20px;
-            font-size: 0.8rem;
-            font-weight: 500;
-            margin-left: 10px;
-        }
-        
-        @media (max-width: 768px) {
-            .status-card {
-                flex-direction: column;
-                align-items: flex-start;
-            }
-            
-            .btn {
-                margin-top: 15px;
-                width: 100%;
-                justify-content: center;
-            }
-            
-            .history-cards {
-                grid-template-columns: 1fr;
-            }
+        #last-update {
+            font-size: 14px;
+            color: gray;
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <header>
-            <div class="logo">
-                <i class="fas fa-motorcycle"></i>
-                <h1>機盜了啦</h1>
-            </div>
-            <div class="user-info">
-                <span>您好，使用者</span>
-            </div>
-        </header>
-        
-        <div class="status-card">
-            <div class="status-info">
-                <div class="status-icon">
-                    <i class="fas fa-map-marker-alt"></i>
-                </div>
-                <div class="status-text">
-                    <h2>機車即時位置</h2>
-                    <p>最後更新: <span id="last-update">剛剛</span></p>
-                </div>
-            </div>
-            <button id="refresh-btn" class="btn btn-primary">
-                <i class="fas fa-sync-alt"></i> 更新位置
-            </button>
-        </div>
-        
-        <div class="map-container">
-            <div id="map"></div>
-            <div class="map-overlay">
-                <button id="locate-btn" class="btn btn-primary" style="padding: 8px 12px;">
-                    <i class="fas fa-location-arrow"></i> 定位我的位置
-                </button>
-            </div>
-        </div>
-        
-        <div class="history-section">
-            <div class="history-title">
-                <h2><i class="fas fa-history"></i> 歷史記錄</h2>
-                <a href="#" style="color: var(--primary); text-decoration: none;">查看全部</a>
-            </div>
-            <div class="history-cards">
-                <div class="history-card">
-                    <h3>台北市信義區 <span class="alert-badge">警報</span></h3>
-                    <p><i class="fas fa-clock"></i> 2023-06-15 14:30</p>
-                    <p><i class="fas fa-info-circle"></i> 偵測到異常震動</p>
-                </div>
-                <div class="history-card">
-                    <h3>新北市板橋區</h3>
-                    <p><i class="fas fa-clock"></i> 2023-06-15 12:15</p>
-                    <p><i class="fas fa-info-circle"></i> 正常停車狀態</p>
-                </div>
-                <div class="history-card">
-                    <h3>台北市中正區</h3>
-                    <p><i class="fas fa-clock"></i> 2023-06-15 10:00</p>
-                    <p><i class="fas fa-info-circle"></i> 移動中</p>
-                </div>
-            </div>
-        </div>
+    <h1>機車防竊追蹤系統</h1>
+    <div id="map"></div>
+    <div class="controls">
+        <button id="refresh-btn">更新位置</button>
+        <button id="locate-btn">顯示我的位置</button>
+        <p>最後更新時間：<span id="last-update">無資料</span></p>
     </div>
 
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
     <script>
-        // 初始化地圖 (以台北車站為中心)
+        // Firebase Realtime Database URL (修改成你的資料庫 URL)
+        const firebaseUrl = "https://moto-anti-theft-default-rtdb.asia-southeast1.firebasedatabase.app/alerts.json";
+
+        // 初始化地圖
         const map = L.map('map').setView([25.0476, 121.5174], 15);
-        
+
         // 添加地圖圖層
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+            attribution: '&copy; OpenStreetMap contributors'
         }).addTo(map);
-        
-        // 添加機車位置標記 (範例位置)
+
+        // 機車圖示
         const bikeIcon = L.icon({
             iconUrl: 'https://cdn-icons-png.flaticon.com/512/2972/2972185.png',
             iconSize: [40, 40],
             iconAnchor: [20, 40],
             popupAnchor: [0, -40]
         });
-        
+
         let bikeMarker = L.marker([25.0476, 121.5174], { icon: bikeIcon })
             .addTo(map)
-            .bindPopup("<b>您的機車</b><br>狀態: 正常停車中");
-        
+            .bindPopup("<b>您的機車</b>");
+
+        // 用於儲存軌跡點
+        let bikePath = [];
+        let polyline = L.polyline([], { color: 'red', weight: 4 }).addTo(map);
+
+        // 從 Firebase 取得最新位置與歷史軌跡
+        async function updateBikeLocation() {
+            try {
+                const res = await fetch(firebaseUrl);
+                const data = await res.json();
+
+                if (!data) {
+                    console.log("Firebase 沒有資料");
+                    return;
+                }
+
+                const records = Object.values(data);
+
+                // 更新軌跡點
+                bikePath = records
+                    .filter(r => r.lat && r.lon)
+                    .map(r => [r.lat, r.lon]);
+
+                if (bikePath.length > 0) {
+                    // 更新最新位置
+                    const latest = bikePath[bikePath.length - 1];
+                    bikeMarker.setLatLng(latest);
+                    map.setView(latest);
+                    polyline.setLatLngs(bikePath);
+
+                    const lastRecord = records[records.length - 1];
+                    document.getElementById('last-update').textContent = lastRecord.timestamp || new Date().toLocaleString();
+                } else {
+                    console.log("資料沒有有效經緯度");
+                }
+            } catch (err) {
+                console.error("取得 Firebase 資料錯誤:", err);
+            }
+        }
+
         // 更新位置按鈕
-        document.getElementById('refresh-btn').addEventListener('click', function() {
-            // 這裡應該從伺服器獲取最新位置
-            // 範例: 隨機移動一點點
-            const currentLat = bikeMarker.getLatLng().lat;
-            const currentLng = bikeMarker.getLatLng().lng;
-            
-            const newLat = currentLat + (Math.random() * 0.002 - 0.001);
-            const newLng = currentLng + (Math.random() * 0.002 - 0.001);
-            
-            bikeMarker.setLatLng([newLat, newLng]);
-            map.setView([newLat, newLng]);
-            
-            document.getElementById('last-update').textContent = new Date().toLocaleTimeString();
-            
-            // 顯示通知
-            L.popup()
-                .setLatLng([newLat, newLng])
-                .setContent('位置已更新!')
-                .openOn(map);
-                
-            setTimeout(() => {
-                map.closePopup();
-            }, 1500);
-        });
-        
-        // 定位使用者位置按鈕
-        document.getElementById('locate-btn').addEventListener('click', function() {
+        document.getElementById('refresh-btn').addEventListener('click', updateBikeLocation);
+
+        // 定位使用者位置
+        document.getElementById('locate-btn').addEventListener('click', function () {
             if (navigator.geolocation) {
                 navigator.geolocation.getCurrentPosition(
                     (position) => {
                         const userLat = position.coords.latitude;
                         const userLng = position.coords.longitude;
-                        
-                        // 添加使用者位置標記
+
                         if (window.userMarker) {
                             map.removeLayer(window.userMarker);
                         }
-                        
+
                         const userIcon = L.icon({
                             iconUrl: 'https://cdn-icons-png.flaticon.com/512/447/447031.png',
                             iconSize: [30, 30],
                             iconAnchor: [15, 30],
                             popupAnchor: [0, -30]
                         });
-                        
+
                         window.userMarker = L.marker([userLat, userLng], { icon: userIcon })
                             .addTo(map)
                             .bindPopup("<b>您的位置</b>");
-                            
-                        // 調整視圖顯示機車和使用者位置
+
                         const bounds = L.latLngBounds(
                             [userLat, userLng],
                             bikeMarker.getLatLng()
@@ -365,18 +144,12 @@
                 alert('您的瀏覽器不支援地理定位功能');
             }
         });
-        
-        // 模擬即時更新 (每30秒更新一次位置)
-        setInterval(() => {
-            const currentLat = bikeMarker.getLatLng().lat;
-            const currentLng = bikeMarker.getLatLng().lng;
-            
-            const newLat = currentLat + (Math.random() * 0.0004 - 0.0002);
-            const newLng = currentLng + (Math.random() * 0.0004 - 0.0002);
-            
-            bikeMarker.setLatLng([newLat, newLng]);
-            document.getElementById('last-update').textContent = new Date().toLocaleTimeString();
-        }, 30000);
+
+        // 每 30 秒自動更新位置
+        setInterval(updateBikeLocation, 30000);
+
+        // 頁面載入立即抓一次
+        updateBikeLocation();
     </script>
 </body>
 </html>
