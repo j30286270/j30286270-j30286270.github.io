@@ -90,11 +90,11 @@
   }).addTo(map);
 
   const bikeIcon = L.icon({
-    iconUrl: 'https://cdn-icons-png.flaticon.com/512/929/929471.png',
-    iconSize: [40, 40],
-    iconAnchor: [20, 40],
-    popupAnchor: [0, -40],
-  });
+  iconUrl: 'https://cdn-icons-png.flaticon.com/512/9242/9242665.png',
+  iconSize: [40, 40],     // 調整大小，看起來合適
+  iconAnchor: [20, 40],   // 圖標底部中間點
+  popupAnchor: [0, -40],  // 彈出視窗往上偏移
+});
 
   let bikeMarker = L.marker([25.0476, 121.5174], {icon: bikeIcon}).addTo(map).bindPopup('<b>您的機車</b>');
 
