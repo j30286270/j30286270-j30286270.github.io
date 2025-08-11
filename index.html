@@ -17,13 +17,16 @@
     h1 {
       position: absolute;
       top: 15px;
-      left: 20px;
+      left: 70px; /* 往右移，避免被按鈕遮住 */
       margin: 0;
       font-size: 22px;
       font-weight: bold;
       color: white;
       text-shadow: 0 2px 4px rgba(0, 0, 0, 0.7);
       z-index: 1000;
+      background: rgba(0, 0, 0, 0.4); /* 半透明背景 */
+      padding: 6px 12px; /* 內距讓背景有空間 */
+      border-radius: 8px; /* 圓角 */
     }
     #map {
       height: 100vh;
@@ -70,7 +73,7 @@
   </style>
 </head>
 <body>
-  <h1><p>機盜了啦-機車防竊追蹤系統</p></h1>
+  <h1>機盜了啦-機車防竊追蹤系統</h1>
   <div id="map"></div>
   <div class="controls">
     <button id="refresh-btn">🔄 更新位置</button>
@@ -89,7 +92,6 @@
       attribution: '&copy; OpenStreetMap contributors',
     }).addTo(map);
 
-    // 自訂旋轉圖標類別，繼承 Leaflet.Marker
     const RotatedMarker = L.Marker.extend({
       options: { angle: 0 },
       _setPos: function (pos) {
@@ -108,7 +110,6 @@
       },
     });
 
-    // 建立圖標，使用旋轉圖標類別
     const bikeIcon = L.icon({
       iconUrl: 'https://cdn-icons-png.flaticon.com/512/9242/9242665.png',
       iconSize: [40, 40],
@@ -127,23 +128,19 @@
     let polyline = L.polyline([], { color: '#ff416c', weight: 4 }).addTo(map);
     let pathVisible = true;
 
-    // 計算角度 (方位)
     function getHeading(lat1, lon1, lat2, lon2) {
       const toRad = (deg) => (deg * Math.PI) / 180;
       const toDeg = (rad) => (rad * 180) / Math.PI;
-
       const dLon = toRad(lon2 - lon1);
       const lat1Rad = toRad(lat1);
       const lat2Rad = toRad(lat2);
-
       const y = Math.sin(dLon) * Math.cos(lat2Rad);
       const x =
         Math.cos(lat1Rad) * Math.sin(lat2Rad) -
         Math.sin(lat1Rad) * Math.cos(lat2Rad) * Math.cos(dLon);
-
       let brng = Math.atan2(y, x);
       brng = toDeg(brng);
-      return (brng + 360) % 360; // 正規化成0~360度
+      return (brng + 360) % 360;
     }
 
     async function updateBikeLocation() {
@@ -151,29 +148,22 @@
         const res = await fetch(firebaseUrl);
         const data = await res.json();
         if (!data) return;
-
         const records = Object.values(data);
         bikePath = records
           .filter((r) => r.lat && r.lon)
           .map((r) => [r.lat, r.lon]);
-
         if (bikePath.length > 0) {
           const latest = bikePath[bikePath.length - 1];
           bikeMarker.setLatLng(latest);
-
-          // 計算並更新車頭方向
           if (bikePath.length >= 2) {
             const prev = bikePath[bikePath.length - 2];
             const heading = getHeading(prev[0], prev[1], latest[0], latest[1]);
             bikeMarker.setAngle(heading);
           }
-
           map.setView(latest);
-
           if (pathVisible) {
             polyline.setLatLngs(bikePath);
           }
-
           const lastRecord = records[records.length - 1];
           document.getElementById('last-update').textContent =
             lastRecord.timestamp || new Date().toLocaleString();
@@ -193,20 +183,16 @@
           (position) => {
             const userLat = position.coords.latitude;
             const userLng = position.coords.longitude;
-
             if (window.userMarker) map.removeLayer(window.userMarker);
-
             const userIcon = L.icon({
               iconUrl: 'https://cdn-icons-png.flaticon.com/512/447/447031.png',
               iconSize: [30, 30],
               iconAnchor: [15, 30],
               popupAnchor: [0, -30],
             });
-
             window.userMarker = L.marker([userLat, userLng], { icon: userIcon })
               .addTo(map)
               .bindPopup('<b>您的位置</b>');
-
             const bounds = L.latLngBounds([userLat, userLng], bikeMarker.getLatLng());
             map.fitBounds(bounds, { padding: [50, 50] });
           },
@@ -225,11 +211,11 @@
         pathVisible = !pathVisible;
         if (pathVisible) {
           polyline.setLatLngs(bikePath);
-          this.textContent = '🛣 隱藏軌跡線';
+          this.textContent = '隱藏軌跡線';
           this.classList.add('active');
         } else {
           polyline.setLatLngs([]);
-          this.textContent = '🛣 顯示軌跡線';
+          this.textContent = '顯示軌跡線';
           this.classList.remove('active');
         }
       });
