@@ -59,10 +59,6 @@
             transform: scale(1.05);
             box-shadow: 0 4px 10px rgba(255, 65, 108, 0.6);
         }
-        button.active {
-            background: linear-gradient(135deg, #00c853, #00e676);
-            box-shadow: 0 4px 10px rgba(0, 230, 118, 0.6);
-        }
         #last-update {
             font-size: 13px;
             color: #ccc;
@@ -75,15 +71,17 @@
     <div class="controls">
         <button id="refresh-btn">🔄 更新位置</button>
         <button id="locate-btn">📍 顯示我的位置</button>
-        <button id="toggle-path-btn" class="active">🛣 隱藏軌跡線</button>
         <p>最後更新時間：<span id="last-update">無資料</span></p>
     </div>
 
     <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
     <script>
+        // Firebase Realtime Database URL (請改成你的)
         const firebaseUrl = "https://moto-anti-theft-default-rtdb.asia-southeast1.firebasedatabase.app/alerts.json";
 
+        // 初始化地圖
         const map = L.map('map').setView([25.0476, 121.5174], 15);
+
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
             attribution: '&copy; OpenStreetMap contributors'
         }).addTo(map);
@@ -101,7 +99,6 @@
 
         let bikePath = [];
         let polyline = L.polyline([], { color: '#ff416c', weight: 4 }).addTo(map);
-        let pathVisible = true;
 
         async function updateBikeLocation() {
             try {
@@ -118,10 +115,7 @@
                     const latest = bikePath[bikePath.length - 1];
                     bikeMarker.setLatLng(latest);
                     map.setView(latest);
-
-                    if (pathVisible) {
-                        polyline.setLatLngs(bikePath);
-                    }
+                    polyline.setLatLngs(bikePath);
 
                     const lastRecord = records[records.length - 1];
                     document.getElementById('last-update').textContent = lastRecord.timestamp || new Date().toLocaleString();
@@ -165,19 +159,6 @@
                 );
             } else {
                 alert('您的瀏覽器不支援地理定位功能');
-            }
-        });
-
-        document.getElementById('toggle-path-btn').addEventListener('click', function () {
-            pathVisible = !pathVisible;
-            if (pathVisible) {
-                polyline.setLatLngs(bikePath);
-                this.textContent = "🛣 隱藏軌跡線";
-                this.classList.add("active");
-            } else {
-                polyline.setLatLngs([]);
-                this.textContent = "🛣 顯示軌跡線";
-                this.classList.remove("active");
             }
         });
 
