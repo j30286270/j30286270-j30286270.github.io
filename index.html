@@ -1,273 +1,214 @@
 <!DOCTYPE html>
 <html lang="zh-TW">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>機車防竊追蹤系統</title>
-  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
-  <style>
-    body {
-      margin: 0;
-      padding: 0;
-      font-family: 'Segoe UI', Arial, sans-serif;
-      background-color: #121212;
-      color: white;
-      overflow: hidden;
-    }
-    h1 {
-      position: absolute;
-      top: 15px;
-      left: 20px;
-      margin: 0;
-      font-size: 22px;
-      font-weight: bold;
-      color: white;
-      text-shadow: 0 2px 4px rgba(0, 0, 0, 0.7);
-      z-index: 1000;
-    }
-    #map {
-      height: 100vh;
-      width: 100%;
-    }
-    .controls {
-      position: absolute;
-      bottom: 20px;
-      left: 50%;
-      transform: translateX(-50%);
-      background: rgba(0, 0, 0, 0.7);
-      padding: 12px 20px;
-      border-radius: 16px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 8px;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
-      z-index: 1000;
-    }
-    button {
-      background: linear-gradient(135deg, #ff4b2b, #ff416c);
-      border: none;
-      padding: 10px 18px;
-      border-radius: 12px;
-      color: white;
-      font-size: 15px;
-      cursor: pointer;
-      font-weight: 500;
-      transition: all 0.2s ease-in-out;
-    }
-    button:hover {
-      transform: scale(1.05);
-      box-shadow: 0 4px 10px rgba(255, 65, 108, 0.6);
-    }
-    button.active {
-      background: linear-gradient(135deg, #00c853, #00e676);
-      box-shadow: 0 4px 10px rgba(0, 230, 118, 0.6);
-    }
-    #last-update {
-      font-size: 13px;
-      color: #ccc;
-    }
-  </style>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>機車防竊追蹤系統</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+<style>
+  body {
+    margin: 0; padding: 0;
+    font-family: 'Segoe UI', Arial, sans-serif;
+    background-color: #121212;
+    color: white;
+    overflow: hidden;
+  }
+  h1 {
+    position: absolute;
+    top: 15px; left: 20px;
+    margin: 0;
+    font-size: 22px;
+    font-weight: bold;
+    color: white;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.7);
+    z-index: 1000;
+  }
+  #map {
+    height: 100vh;
+    width: 100%;
+  }
+  .controls {
+    position: absolute;
+    bottom: 20px; left: 50%;
+    transform: translateX(-50%);
+    background: rgba(0,0,0,0.7);
+    padding: 12px 20px;
+    border-radius: 16px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+    z-index: 1000;
+  }
+  button {
+    background: linear-gradient(135deg, #ff4b2b, #ff416c);
+    border: none;
+    padding: 10px 18px;
+    border-radius: 12px;
+    color: white;
+    font-size: 15px;
+    cursor: pointer;
+    font-weight: 500;
+    transition: all 0.2s ease-in-out;
+  }
+  button:hover {
+    transform: scale(1.05);
+    box-shadow: 0 4px 10px rgba(255,65,108,0.6);
+  }
+  button.active {
+    background: linear-gradient(135deg, #00c853, #00e676);
+    box-shadow: 0 4px 10px rgba(0,230,118,0.6);
+  }
+  #stop-locate-btn {
+    background: #f44336 !important;
+  }
+  #last-update {
+    font-size: 13px;
+    color: #ccc;
+  }
+</style>
 </head>
 <body>
-  <h1>🏍 機車防竊追蹤</h1>
-  <div id="map"></div>
-  <div class="controls">
-    <button id="refresh-btn">🔄 更新機車位置</button>
-    <button id="locate-btn">📍 追蹤我的位置</button>
-    <button id="stop-locate-btn" style="display:none; background:#f44336;">⛔ 停止追蹤</button>
-    <button id="toggle-path-btn" class="active">🛣 隱藏軌跡線</button>
-    <p>最後更新時間：<span id="last-update">無資料</span></p>
-  </div>
+<h1>🏍 機車防竊追蹤</h1>
+<div id="map"></div>
+<div class="controls">
+  <button id="refresh-btn">🔄 更新機車位置</button>
+  <button id="locate-btn">📍 開始追蹤我的位置</button>
+  <button id="stop-locate-btn" style="display:none;">⛔ 停止追蹤</button>
+  <button id="toggle-path-btn" class="active">🛣 隱藏軌跡線</button>
+  <p>最後更新時間：<span id="last-update">無資料</span></p>
+</div>
 
-  <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
-  <script>
-    const firebaseUrl =
-      'https://moto-anti-theft-default-rtdb.asia-southeast1.firebasedatabase.app/alerts.json';
+<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+<script>
+  const firebaseUrl = 'https://moto-anti-theft-default-rtdb.asia-southeast1.firebasedatabase.app/alerts.json';
 
-    const map = L.map('map').setView([25.0476, 121.5174], 15);
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      attribution: '&copy; OpenStreetMap contributors',
-    }).addTo(map);
+  const map = L.map('map').setView([25.0476, 121.5174], 15);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '&copy; OpenStreetMap contributors',
+  }).addTo(map);
 
-    // 自訂旋轉圖標類別，繼承 Leaflet.Marker
-    const RotatedMarker = L.Marker.extend({
-      options: { angle: 0 },
-      _setPos: function (pos) {
-        L.Marker.prototype._setPos.call(this, pos);
-        if (this.options.angle) {
-          this._icon.style.transform += ' rotate(' + this.options.angle + 'deg)';
+  const bikeIcon = L.icon({
+    iconUrl: 'https://cdn-icons-png.flaticon.com/512/2972/2972185.png',
+    iconSize: [40, 40],
+    iconAnchor: [20, 40],
+    popupAnchor: [0, -40],
+  });
+
+  let bikeMarker = L.marker([25.0476, 121.5174], {icon: bikeIcon}).addTo(map).bindPopup('<b>您的機車</b>');
+
+  let bikePath = [];
+  let polyline = L.polyline([], {color: '#ff416c', weight: 4}).addTo(map);
+  let pathVisible = true;
+
+  let userMarker = null;
+  let watchId = null;
+
+  // 取得最新機車位置
+  async function updateBikeLocation() {
+    try {
+      const res = await fetch(firebaseUrl);
+      const data = await res.json();
+      if (!data) return;
+
+      const records = Object.values(data);
+      bikePath = records.filter(r => r.lat && r.lon).map(r => [r.lat, r.lon]);
+
+      if (bikePath.length > 0) {
+        const latest = bikePath[bikePath.length - 1];
+        bikeMarker.setLatLng(latest);
+        map.setView(latest);
+
+        if (pathVisible) {
+          polyline.setLatLngs(bikePath);
         }
-      },
-      setAngle: function (angle) {
-        this.options.angle = angle;
-        if (this._icon) {
-          this._icon.style.transform = this._icon.style.transform
-            .replace(/rotate\(.+deg\)/, '') + ' rotate(' + angle + 'deg)';
+
+        const lastRecord = records[records.length - 1];
+        document.getElementById('last-update').textContent = lastRecord.timestamp || new Date().toLocaleString();
+      }
+    } catch (e) {
+      console.error('取得 Firebase 資料錯誤:', e);
+    }
+  }
+
+  // 開始追蹤使用者位置
+  document.getElementById('locate-btn').addEventListener('click', () => {
+    if (!navigator.geolocation) {
+      alert('您的瀏覽器不支援地理定位功能');
+      return;
+    }
+    if (watchId !== null) return;
+
+    watchId = navigator.geolocation.watchPosition(
+      (pos) => {
+        const lat = pos.coords.latitude;
+        const lng = pos.coords.longitude;
+
+        if (userMarker) {
+          userMarker.setLatLng([lat, lng]);
+        } else {
+          const userIcon = L.icon({
+            iconUrl: 'https://cdn-icons-png.flaticon.com/512/447/447031.png',
+            iconSize: [30, 30],
+            iconAnchor: [15, 30],
+            popupAnchor: [0, -30],
+          });
+          userMarker = L.marker([lat, lng], {icon: userIcon}).addTo(map).bindPopup('<b>您的位置</b>').openPopup();
         }
-        return this;
+
+        // 調整視野包含使用者和機車
+        const bounds = L.latLngBounds([lat, lng], bikeMarker.getLatLng());
+        map.fitBounds(bounds, {padding: [50, 50]});
       },
-    });
+      (err) => {
+        alert('無法取得您的位置: ' + err.message);
+      },
+      {
+        enableHighAccuracy: true,
+        timeout: 10000,
+        maximumAge: 0,
+      }
+    );
 
-    const bikeIcon = L.icon({
-      iconUrl: 'https://cdn-icons-png.flaticon.com/512/2972/2972185.png',
-      iconSize: [40, 40],
-      iconAnchor: [20, 40],
-      popupAnchor: [0, -40],
-    });
+    // UI 切換
+    document.getElementById('locate-btn').style.display = 'none';
+    document.getElementById('stop-locate-btn').style.display = 'inline-block';
+  });
 
-    let bikeMarker = new RotatedMarker([25.0476, 121.5174], {
-      icon: bikeIcon,
-      angle: 0,
-    })
-      .addTo(map)
-      .bindPopup('<b>您的機車</b>');
-
-    let bikePath = [];
-    let polyline = L.polyline([], { color: '#ff416c', weight: 4 }).addTo(map);
-    let pathVisible = true;
-
-    // 使用者標記和追蹤ID
-    let userMarker = null;
-    let watchId = null;
-
-    // 計算角度 (方位)
-    function getHeading(lat1, lon1, lat2, lon2) {
-      const toRad = (deg) => (deg * Math.PI) / 180;
-      const toDeg = (rad) => (rad * 180) / Math.PI;
-
-      const dLon = toRad(lon2 - lon1);
-      const lat1Rad = toRad(lat1);
-      const lat2Rad = toRad(lat2);
-
-      const y = Math.sin(dLon) * Math.cos(lat2Rad);
-      const x =
-        Math.cos(lat1Rad) * Math.sin(lat2Rad) -
-        Math.sin(lat1Rad) * Math.cos(lat2Rad) * Math.cos(dLon);
-
-      let brng = Math.atan2(y, x);
-      brng = toDeg(brng);
-      return (brng + 360) % 360;
+  // 停止追蹤使用者位置
+  document.getElementById('stop-locate-btn').addEventListener('click', () => {
+    if (watchId !== null) {
+      navigator.geolocation.clearWatch(watchId);
+      watchId = null;
+    }
+    if (userMarker) {
+      map.removeLayer(userMarker);
+      userMarker = null;
     }
 
-    async function updateBikeLocation() {
-      try {
-        const res = await fetch(firebaseUrl);
-        const data = await res.json();
-        if (!data) return;
+    // UI 切換
+    document.getElementById('stop-locate-btn').style.display = 'none';
+    document.getElementById('locate-btn').style.display = 'inline-block';
+  });
 
-        const records = Object.values(data);
-        bikePath = records
-          .filter((r) => r.lat && r.lon)
-          .map((r) => [r.lat, r.lon]);
-
-        if (bikePath.length > 0) {
-          const latest = bikePath[bikePath.length - 1];
-          bikeMarker.setLatLng(latest);
-
-          if (bikePath.length >= 2) {
-            const prev = bikePath[bikePath.length - 2];
-            const heading = getHeading(prev[0], prev[1], latest[0], latest[1]);
-            bikeMarker.setAngle(heading);
-          }
-
-          map.setView(latest);
-
-          if (pathVisible) {
-            polyline.setLatLngs(bikePath);
-          }
-
-          const lastRecord = records[records.length - 1];
-          document.getElementById('last-update').textContent =
-            lastRecord.timestamp || new Date().toLocaleString();
-        }
-      } catch (err) {
-        console.error('取得 Firebase 資料錯誤:', err);
-      }
+  // 切換軌跡線顯示
+  document.getElementById('toggle-path-btn').addEventListener('click', function () {
+    pathVisible = !pathVisible;
+    if (pathVisible) {
+      polyline.setLatLngs(bikePath);
+      this.textContent = '🛣 隱藏軌跡線';
+      this.classList.add('active');
+    } else {
+      polyline.setLatLngs([]);
+      this.textContent = '🛣 顯示軌跡線';
+      this.classList.remove('active');
     }
+  });
 
-    // 按鈕：更新機車位置
-    document
-      .getElementById('refresh-btn')
-      .addEventListener('click', updateBikeLocation);
-
-    // 按鈕：開始追蹤使用者位置
-    document.getElementById('locate-btn').addEventListener('click', () => {
-      if (!navigator.geolocation) {
-        alert('您的瀏覽器不支援地理定位功能');
-        return;
-      }
-      if (watchId !== null) return; // 已經在追蹤中
-
-      watchId = navigator.geolocation.watchPosition(
-        (position) => {
-          const userLat = position.coords.latitude;
-          const userLng = position.coords.longitude;
-
-          if (userMarker) {
-            userMarker.setLatLng([userLat, userLng]);
-          } else {
-            const userIcon = L.icon({
-              iconUrl: 'https://cdn-icons-png.flaticon.com/512/447/447031.png',
-              iconSize: [30, 30],
-              iconAnchor: [15, 30],
-              popupAnchor: [0, -30],
-            });
-            userMarker = L.marker([userLat, userLng], { icon: userIcon })
-              .addTo(map)
-              .bindPopup('<b>您的位置</b>')
-              .openPopup();
-          }
-
-          // 調整視野包含使用者和機車
-          const bounds = L.latLngBounds([userLat, userLng], bikeMarker.getLatLng());
-          map.fitBounds(bounds, { padding: [50, 50] });
-        },
-        (error) => {
-          alert('無法取得您的位置: ' + error.message);
-        },
-        {
-          enableHighAccuracy: true,
-          timeout: 10000,
-          maximumAge: 0,
-        }
-      );
-
-      document.getElementById('locate-btn').style.display = 'none';
-      document.getElementById('stop-locate-btn').style.display = 'inline-block';
-    });
-
-    // 按鈕：停止追蹤使用者位置
-    document.getElementById('stop-locate-btn').addEventListener('click', () => {
-      if (watchId !== null) {
-        navigator.geolocation.clearWatch(watchId);
-        watchId = null;
-      }
-      if (userMarker) {
-        map.removeLayer(userMarker);
-        userMarker = null;
-      }
-      document.getElementById('stop-locate-btn').style.display = 'none';
-      document.getElementById('locate-btn').style.display = 'inline-block';
-    });
-
-    // 按鈕：切換軌跡線顯示
-    document.getElementById('toggle-path-btn').addEventListener('click', function () {
-      pathVisible = !pathVisible;
-      if (pathVisible) {
-        polyline.setLatLngs(bikePath);
-        this.textContent = '🛣 隱藏軌跡線';
-        this.classList.add('active');
-      } else {
-        polyline.setLatLngs([]);
-        this.textContent = '🛣 顯示軌跡線';
-        this.classList.remove('active');
-      }
-    });
-
-    // 定時更新機車位置
-    setInterval(updateBikeLocation, 30000);
-    updateBikeLocation();
-  </script>
+  // 自動更新機車位置
+  setInterval(updateBikeLocation, 30000);
+  updateBikeLocation();
+</script>
 </body>
 </html>
