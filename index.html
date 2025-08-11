@@ -7,27 +7,61 @@
     <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
     <style>
         body {
-            font-family: Arial, sans-serif;
-            text-align: center;
+            font-family: 'Segoe UI', Arial, sans-serif;
             margin: 0;
             padding: 0;
+            background: linear-gradient(135deg, #f0f4ff, #d9e4ff);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        h1 {
+            margin: 20px 0 10px;
+            color: #333;
+            font-weight: 700;
+            letter-spacing: 1px;
         }
         #map {
             height: 500px;
-            width: 100%;
+            width: 90%;
+            border-radius: 15px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            margin-bottom: 15px;
         }
         .controls {
-            margin: 10px;
+            background: white;
+            border-radius: 12px;
+            padding: 15px 20px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 20px;
         }
         button {
-            margin: 5px;
-            padding: 8px 15px;
-            font-size: 16px;
+            background-color: #4A90E2;
+            border: none;
+            border-radius: 8px;
+            padding: 10px 18px;
+            color: white;
+            font-size: 15px;
             cursor: pointer;
+            transition: background 0.3s, transform 0.2s;
+        }
+        button:hover {
+            background-color: #357ABD;
+            transform: translateY(-2px);
+        }
+        button:active {
+            transform: translateY(0);
         }
         #last-update {
             font-size: 14px;
             color: gray;
+            margin-top: 5px;
+            flex-basis: 100%;
+            text-align: center;
         }
     </style>
 </head>
@@ -37,23 +71,20 @@
     <div class="controls">
         <button id="refresh-btn">更新位置</button>
         <button id="locate-btn">顯示我的位置</button>
+        <button id="toggle-path-btn">隱藏軌跡</button>
         <p>最後更新時間：<span id="last-update">無資料</span></p>
     </div>
 
     <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
     <script>
-        // Firebase Realtime Database URL (修改成你的資料庫 URL)
         const firebaseUrl = "https://moto-anti-theft-default-rtdb.asia-southeast1.firebasedatabase.app/alerts.json";
 
-        // 初始化地圖
         const map = L.map('map').setView([25.0476, 121.5174], 15);
 
-        // 添加地圖圖層
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
             attribution: '&copy; OpenStreetMap contributors'
         }).addTo(map);
 
-        // 機車圖示
         const bikeIcon = L.icon({
             iconUrl: 'https://cdn-icons-png.flaticon.com/512/2972/2972185.png',
             iconSize: [40, 40],
@@ -65,11 +96,10 @@
             .addTo(map)
             .bindPopup("<b>您的機車</b>");
 
-        // 用於儲存軌跡點
         let bikePath = [];
         let polyline = L.polyline([], { color: 'red', weight: 4 }).addTo(map);
+        let pathVisible = true;
 
-        // 從 Firebase 取得最新位置與歷史軌跡
         async function updateBikeLocation() {
             try {
                 const res = await fetch(firebaseUrl);
@@ -82,17 +112,15 @@
 
                 const records = Object.values(data);
 
-                // 更新軌跡點
                 bikePath = records
                     .filter(r => r.lat && r.lon)
                     .map(r => [r.lat, r.lon]);
 
                 if (bikePath.length > 0) {
-                    // 更新最新位置
                     const latest = bikePath[bikePath.length - 1];
                     bikeMarker.setLatLng(latest);
                     map.setView(latest);
-                    polyline.setLatLngs(bikePath);
+                    if (pathVisible) polyline.setLatLngs(bikePath);
 
                     const lastRecord = records[records.length - 1];
                     document.getElementById('last-update').textContent = lastRecord.timestamp || new Date().toLocaleString();
@@ -104,10 +132,8 @@
             }
         }
 
-        // 更新位置按鈕
         document.getElementById('refresh-btn').addEventListener('click', updateBikeLocation);
 
-        // 定位使用者位置
         document.getElementById('locate-btn').addEventListener('click', function () {
             if (navigator.geolocation) {
                 navigator.geolocation.getCurrentPosition(
@@ -145,10 +171,19 @@
             }
         });
 
-        // 每 30 秒自動更新位置
-        setInterval(updateBikeLocation, 30000);
+        document.getElementById('toggle-path-btn').addEventListener('click', function () {
+            pathVisible = !pathVisible;
+            if (pathVisible) {
+                map.addLayer(polyline);
+                polyline.setLatLngs(bikePath);
+                this.textContent = "隱藏軌跡";
+            } else {
+                map.removeLayer(polyline);
+                this.textContent = "顯示軌跡";
+            }
+        });
 
-        // 頁面載入立即抓一次
+        setInterval(updateBikeLocation, 30000);
         updateBikeLocation();
     </script>
 </body>
