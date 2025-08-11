@@ -73,9 +73,8 @@
   <h1>🏍 機車防竊追蹤</h1>
   <div id="map"></div>
   <div class="controls">
-    <button id="refresh-btn">🔄 更新機車位置</button>
-    <button id="locate-btn">📍 追蹤我的位置</button>
-    <button id="stop-locate-btn" style="display:none; background:#f44336;">⛔ 停止追蹤</button>
+    <button id="refresh-btn">🔄 更新位置</button>
+    <button id="locate-btn">📍 顯示我的位置</button>
     <button id="toggle-path-btn" class="active">🛣 隱藏軌跡線</button>
     <p>最後更新時間：<span id="last-update">無資料</span></p>
   </div>
@@ -109,6 +108,7 @@
       },
     });
 
+    // 建立圖標，使用旋轉圖標類別
     const bikeIcon = L.icon({
       iconUrl: 'https://cdn-icons-png.flaticon.com/512/9242/9242665.png',
       iconSize: [40, 40],
@@ -127,10 +127,6 @@
     let polyline = L.polyline([], { color: '#ff416c', weight: 4 }).addTo(map);
     let pathVisible = true;
 
-    // 使用者標記和追蹤ID
-    let userMarker = null;
-    let watchId = null;
-
     // 計算角度 (方位)
     function getHeading(lat1, lon1, lat2, lon2) {
       const toRad = (deg) => (deg * Math.PI) / 180;
@@ -147,7 +143,7 @@
 
       let brng = Math.atan2(y, x);
       brng = toDeg(brng);
-      return (brng + 360) % 360;
+      return (brng + 360) % 360; // 正規化成0~360度
     }
 
     async function updateBikeLocation() {
@@ -165,6 +161,7 @@
           const latest = bikePath[bikePath.length - 1];
           bikeMarker.setLatLng(latest);
 
+          // 計算並更新車頭方向
           if (bikePath.length >= 2) {
             const prev = bikePath[bikePath.length - 2];
             const heading = getHeading(prev[0], prev[1], latest[0], latest[1]);
@@ -186,86 +183,57 @@
       }
     }
 
-    // 按鈕：更新機車位置
     document
       .getElementById('refresh-btn')
       .addEventListener('click', updateBikeLocation);
 
-    // 按鈕：開始追蹤使用者位置
-    document.getElementById('locate-btn').addEventListener('click', () => {
-      if (!navigator.geolocation) {
-        alert('您的瀏覽器不支援地理定位功能');
-        return;
-      }
-      if (watchId !== null) return; // 已經在追蹤中
+    document.getElementById('locate-btn').addEventListener('click', function () {
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+          (position) => {
+            const userLat = position.coords.latitude;
+            const userLng = position.coords.longitude;
 
-      watchId = navigator.geolocation.watchPosition(
-        (position) => {
-          const userLat = position.coords.latitude;
-          const userLng = position.coords.longitude;
+            if (window.userMarker) map.removeLayer(window.userMarker);
 
-          if (userMarker) {
-            userMarker.setLatLng([userLat, userLng]);
-          } else {
             const userIcon = L.icon({
               iconUrl: 'https://cdn-icons-png.flaticon.com/512/447/447031.png',
               iconSize: [30, 30],
               iconAnchor: [15, 30],
               popupAnchor: [0, -30],
             });
-            userMarker = L.marker([userLat, userLng], { icon: userIcon })
+
+            window.userMarker = L.marker([userLat, userLng], { icon: userIcon })
               .addTo(map)
-              .bindPopup('<b>您的位置</b>')
-              .openPopup();
+              .bindPopup('<b>您的位置</b>');
+
+            const bounds = L.latLngBounds([userLat, userLng], bikeMarker.getLatLng());
+            map.fitBounds(bounds, { padding: [50, 50] });
+          },
+          (error) => {
+            alert('無法取得您的位置: ' + error.message);
           }
-
-          // 調整視野包含使用者和機車
-          const bounds = L.latLngBounds([userLat, userLng], bikeMarker.getLatLng());
-          map.fitBounds(bounds, { padding: [50, 50] });
-        },
-        (error) => {
-          alert('無法取得您的位置: ' + error.message);
-        },
-        {
-          enableHighAccuracy: true,
-          timeout: 10000,
-          maximumAge: 0,
-        }
-      );
-
-      document.getElementById('locate-btn').style.display = 'none';
-      document.getElementById('stop-locate-btn').style.display = 'inline-block';
-    });
-
-    // 按鈕：停止追蹤使用者位置
-    document.getElementById('stop-locate-btn').addEventListener('click', () => {
-      if (watchId !== null) {
-        navigator.geolocation.clearWatch(watchId);
-        watchId = null;
-      }
-      if (userMarker) {
-        map.removeLayer(userMarker);
-        userMarker = null;
-      }
-      document.getElementById('stop-locate-btn').style.display = 'none';
-      document.getElementById('locate-btn').style.display = 'inline-block';
-    });
-
-    // 按鈕：切換軌跡線顯示
-    document.getElementById('toggle-path-btn').addEventListener('click', function () {
-      pathVisible = !pathVisible;
-      if (pathVisible) {
-        polyline.setLatLngs(bikePath);
-        this.textContent = '🛣 隱藏軌跡線';
-        this.classList.add('active');
+        );
       } else {
-        polyline.setLatLngs([]);
-        this.textContent = '🛣 顯示軌跡線';
-        this.classList.remove('active');
+        alert('您的瀏覽器不支援地理定位功能');
       }
     });
 
-    // 定時更新機車位置
+    document
+      .getElementById('toggle-path-btn')
+      .addEventListener('click', function () {
+        pathVisible = !pathVisible;
+        if (pathVisible) {
+          polyline.setLatLngs(bikePath);
+          this.textContent = '🛣 隱藏軌跡線';
+          this.classList.add('active');
+        } else {
+          polyline.setLatLngs([]);
+          this.textContent = '🛣 顯示軌跡線';
+          this.classList.remove('active');
+        }
+      });
+
     setInterval(updateBikeLocation, 30000);
     updateBikeLocation();
   </script>
