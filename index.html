@@ -6,6 +6,20 @@
     <title>機車防竊追蹤系統</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
     <style>
+        h1 {
+    position: absolute;
+    top: 15px;
+    left: 100px; /* 往右移，避免被遮住 */
+    margin: 0;
+    font-size: 22px;
+    font-weight: bold;
+    color: white;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.7);
+    z-index: 1000;
+    background: rgba(0, 0, 0, 0.4); /* 半透明背景讓字更清楚 */
+    padding: 6px 12px;
+    border-radius: 8px;
+  }
         body {
             font-family: Arial, sans-serif;
             text-align: center;
@@ -32,7 +46,7 @@
     </style>
 </head>
 <body>
-    <h1>機車防竊追蹤系統</h1>
+    <h1>機盜了啦-機車防盜系統</h1>
     <div id="map"></div>
     <div class="controls">
         <button id="refresh-btn">更新位置</button>
