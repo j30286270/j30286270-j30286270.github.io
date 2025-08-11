@@ -65,7 +65,11 @@
             .addTo(map)
             .bindPopup("<b>您的機車</b>");
 
-        // 從 Firebase 取得最新位置
+        // 用於儲存軌跡點
+        let bikePath = [];
+        let polyline = L.polyline([], { color: 'red', weight: 4 }).addTo(map);
+
+        // 從 Firebase 取得最新位置與歷史軌跡
         async function updateBikeLocation() {
             try {
                 const res = await fetch(firebaseUrl);
@@ -77,16 +81,23 @@
                 }
 
                 const records = Object.values(data);
-                const latest = records[records.length - 1];
 
-                if (latest && latest.lat && latest.lon) {
-                    const lat = latest.lat;
-                    const lon = latest.lon;
-                    bikeMarker.setLatLng([lat, lon]);
-                    map.setView([lat, lon]);
-                    document.getElementById('last-update').textContent = latest.timestamp || new Date().toLocaleString();
+                // 更新軌跡點
+                bikePath = records
+                    .filter(r => r.lat && r.lon)
+                    .map(r => [r.lat, r.lon]);
+
+                if (bikePath.length > 0) {
+                    // 更新最新位置
+                    const latest = bikePath[bikePath.length - 1];
+                    bikeMarker.setLatLng(latest);
+                    map.setView(latest);
+                    polyline.setLatLngs(bikePath);
+
+                    const lastRecord = records[records.length - 1];
+                    document.getElementById('last-update').textContent = lastRecord.timestamp || new Date().toLocaleString();
                 } else {
-                    console.log("最新資料缺少經緯度");
+                    console.log("資料沒有有效經緯度");
                 }
             } catch (err) {
                 console.error("取得 Firebase 資料錯誤:", err);
