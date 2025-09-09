@@ -6,78 +6,88 @@
     <title>機車防竊追蹤系統</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
-
     <style>
-    /* 全域字體改成圓體 */
-    body {
-        font-family: 'Noto Sans TC', 'Microsoft JhengHei UI', 'PingFang TC', sans-serif;
-        margin: 0;
-        padding: 0;
-        background: #E0DED7; /* 莫蘭迪淺灰米色背景 */
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-    }
-    h1 {
-        margin: 20px 0 10px;
-        color: #6B5B5B; /* 莫蘭迪深灰褐色 */
-        font-weight: 700;
-        letter-spacing: 1px;
-        font-family: inherit; /* 繼承圓體 */
-    }
-    #map {
-        height: 500px;
-        width: 90%;
-        border-radius: 15px;
-        box-shadow: 0 4px 20px rgba(0,0,0,0.1);
-        margin-bottom: 15px;
-        border: 2px solid #C0BEB5; /* 莫蘭迪灰邊框 */
-    }
-    .controls {
-        background: #F3F1ED; /* 莫蘭迪奶油色 */
-        border-radius: 15px;
-        padding: 20px 25px;
-        box-shadow: 0 6px 20px rgba(0,0,0,0.08);
-        display: flex;
-        flex-wrap: wrap;
-        justify-content: center;
-        gap: 12px;
-        margin-bottom: 25px;
-        font-family: inherit; /* 繼承圓體 */
-    }
-    button {
-        background-color: #A69F9F; /* 莫蘭迪灰紫色 */
-        border: none;
-        border-radius: 25px; /* 圓潤按鈕 */
-        padding: 12px 22px;
-        color: #F3F1ED; /* 文字淺色對比 */
-        font-size: 16px; /* 稍大文字 */
-        font-weight: 500;
-        cursor: pointer;
-        transition: background 0.3s, transform 0.2s, box-shadow 0.2s;
-        font-family: inherit; /* 繼承圓體 */
-        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-    }
-    button:hover {
-        background-color: #8C8585; /* 莫蘭迪深灰紫色 */
-        transform: translateY(-2px);
-        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-    }
-    button:active {
-        transform: translateY(0);
-        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-    }
-    #last-update {
-        font-size: 14px;
-        color: #7A7A7A; /* 莫蘭迪灰色 */
-        margin-top: 5px;
-        flex-basis: 100%;
-        text-align: center;
-        font-family: inherit; /* 繼承圓體 */
-    }
-</style>
-
-
+        /* 樣式保持不變 */
+        body {
+            font-family: 'Noto Sans TC', 'Microsoft JhengHei UI', 'PingFang TC', sans-serif;
+            margin: 0;
+            padding: 0;
+            background: #E0DED7; 
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        h1 {
+            margin: 20px 0 10px;
+            color: #6B5B5B;
+            font-weight: 700;
+            letter-spacing: 1px;
+            font-family: inherit; 
+        }
+        #map {
+            height: 500px;
+            width: 90%;
+            border-radius: 15px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            margin-bottom: 15px;
+            border: 2px solid #C0BEB5;
+        }
+        .controls {
+            background: #F3F1ED; 
+            border-radius: 15px;
+            padding: 20px 25px;
+            box-shadow: 0 6px 20px rgba(0,0,0,0.08);
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 12px;
+            margin-bottom: 25px;
+            font-family: inherit; 
+        }
+        button {
+            background-color: #A69F9F; 
+            border: none;
+            border-radius: 25px;
+            padding: 12px 22px;
+            color: #F3F1ED;
+            font-size: 16px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background 0.3s, transform 0.2s, box-shadow 0.2s;
+            font-family: inherit;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        button:hover {
+            background-color: #8C8585;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+        button:active {
+            transform: translateY(0);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        #last-update {
+            font-size: 14px;
+            color: #7A7A7A; 
+            margin-top: 5px;
+            flex-basis: 100%;
+            text-align: center;
+            font-family: inherit; 
+        }
+        .status-indicator {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+        .status-online {
+            background-color: #4CAF50;
+        }
+        .status-offline {
+            background-color: #F44336;
+        }
+    </style>
 </head>
 <body>
     <h1>機盜了啦-機車防盜系統</h1>
@@ -87,11 +97,13 @@
         <button id="locate-btn">顯示我的位置</button>
         <button id="toggle-path-btn">隱藏軌跡</button>
         <p>最後更新時間：<span id="last-update">無資料</span></p>
+        <p>背景監控狀態：<span id="bg-status"><span class="status-indicator status-online"></span>運行中</span></p>
     </div>
 
     <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
     <script>
         const firebaseUrl = "https://moto-anti-theft-default-rtdb.asia-southeast1.firebasedatabase.app/alerts.json";
+        const discordWebhook = "https://discord.com/api/webhooks/1402296184600531165/1Ykjm7RAmPcyCwJXiHjt3NNUi_Fgam01CPcRmFvLm9PAYa1PtVQXZUYPdovz2rnmENeT";
 
         const map = L.map('map').setView([25.0476, 121.5174], 15);
 
@@ -113,6 +125,52 @@
         let bikePath = [];
         let polyline = L.polyline([], { color: 'red', weight: 4 }).addTo(map);
         let pathVisible = true;
+
+        let lastDiscordTimestamp = null; // 防止重複推送
+        let bgMonitoringInterval = null;
+        
+        // 啟動背景監控
+        function startBackgroundMonitoring() {
+            if (bgMonitoringInterval) clearInterval(bgMonitoringInterval);
+            
+            bgMonitoringInterval = setInterval(async () => {
+                try {
+                    const res = await fetch(firebaseUrl);
+                    const data = await res.json();
+                    
+                    if (!data) return;
+                    
+                    const records = Object.values(data);
+                    if (records.length === 0) return;
+                    
+                    const lastRecord = records[records.length - 1];
+                    
+                    // 檢查是否有新資料並發送Discord通知
+                    if (lastRecord.timestamp !== lastDiscordTimestamp) {
+                        lastDiscordTimestamp = lastRecord.timestamp;
+                        const message = `🚨 機車異常！\n座標：${lastRecord.lat}, ${lastRecord.lon}\n時間：${lastRecord.timestamp || new Date().toLocaleString()}`;
+                        
+                        // 發送到Discord
+                        fetch(discordWebhook, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ content: message })
+                        }).then(() => console.log("已推送到 Discord"));
+                    }
+                } catch (err) {
+                    console.error("背景監控錯誤:", err);
+                }
+            }, 10000); // 每10秒檢查一次
+        }
+        
+        // 頁面可見性改變時的處理
+        document.addEventListener('visibilitychange', function() {
+            if (document.hidden) {
+                console.log('頁面進入背景，繼續監控');
+            } else {
+                console.log('頁面回到前景');
+            }
+        });
 
         async function updateBikeLocation() {
             try {
@@ -138,6 +196,7 @@
 
                     const lastRecord = records[records.length - 1];
                     document.getElementById('last-update').textContent = lastRecord.timestamp || new Date().toLocaleString();
+
                 } else {
                     console.log("資料沒有有效經緯度");
                 }
@@ -148,16 +207,10 @@
 
         document.getElementById('refresh-btn').addEventListener('click', updateBikeLocation);
 
-        // ======== 加強版「顯示我的位置」按鈕 ========
         document.getElementById('locate-btn').addEventListener('click', function () {
-            console.log("定位按鈕被點擊");
-            alert("開始嘗試取得定位...");
-
             if (navigator.geolocation) {
                 navigator.geolocation.getCurrentPosition(
                     (position) => {
-                        console.log("定位成功", position);
-                        alert("定位成功！");
                         const userLat = position.coords.latitude;
                         const userLng = position.coords.longitude;
 
@@ -183,28 +236,9 @@
                         map.fitBounds(bounds, { padding: [50, 50] });
                     },
                     (error) => {
-                        console.error("定位失敗", error);
-                        let errorMsg = "";
-                        switch (error.code) {
-                            case error.PERMISSION_DENIED:
-                                errorMsg = "使用者拒絕定位";
-                                break;
-                            case error.POSITION_UNAVAILABLE:
-                                errorMsg = "無法取得定位資訊";
-                                break;
-                            case error.TIMEOUT:
-                                errorMsg = "定位逾時";
-                                break;
-                            default:
-                                errorMsg = "未知錯誤";
-                        }
-                        alert(`無法取得您的位置：${errorMsg}（錯誤代碼：${error.code}）`);
+                        alert("定位失敗：" + error.message);
                     },
-                    {
-                        enableHighAccuracy: true,
-                        timeout: 10000,
-                        maximumAge: 0
-                    }
+                    { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
                 );
             } else {
                 alert('您的瀏覽器不支援地理定位功能');
@@ -223,7 +257,9 @@
             }
         });
 
+        // 啟動定期更新和背景監控
         setInterval(updateBikeLocation, 30000);
+        startBackgroundMonitoring();
         updateBikeLocation();
     </script>
 </body>
